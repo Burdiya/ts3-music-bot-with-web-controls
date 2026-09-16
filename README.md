@@ -76,7 +76,8 @@ POST {IMPORT_API_URL}/import
 
 That's the entire contract — anything speaking this protocol works,
 including something you write yourself. A reference implementation
-(`import_api.py`) exists in the author's companion **media-downloader-bots**
+(`import_api.py`) exists in the author's companion
+[media-downloader-bale-telegram](https://github.com/Burdiya/media-downloader-bale-telegram)
 project (the Telegram/Bale download bots) — it resolves the link, reuses
 that project's yt-dlp setup to fetch it, then SFTPs the result into this
 project's `music/` directory using credentials from *its own* `.env`
