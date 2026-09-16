@@ -9,7 +9,7 @@ import songs from Spotify/SoundCloud links.
 > calls out to one via `IMPORT_API_URL`/`IMPORT_API_KEY`; it doesn't
 > include or run one itself). Without that configured, everything else
 > works fine and the "Import Link" feature just stays hidden. See
-> [Configuration](#configuration).
+> [Spotify/SoundCloud import bridge](#spotifysoundcloud-import-bridge).
 
 ## What it is
 
@@ -54,6 +54,40 @@ Nothing here talks to the internet except: TS3AudioBot resolving YouTube
 links (if you use that feature) and the optional Spotify/SoundCloud import
 bridge, which is a *separate* external service you point `IMPORT_API_URL`
 at — it is not part of this repo.
+
+## Spotify/SoundCloud import bridge
+
+The web UI's "Import Link" button doesn't download anything itself — it
+makes one HTTP call to an external service and expects that service to
+drop the finished file into this project's `music/` folder (over SFTP,
+since that service usually runs on a *different* machine — downloading
+audio reliably from Spotify/SoundCloud needs its own yt-dlp setup, which
+doesn't belong bundled into a TeamSpeak bot).
+
+**Protocol**, exactly as `server.js` calls it:
+
+```
+POST {IMPORT_API_URL}/import
+  Headers: X-API-Key: {IMPORT_API_KEY}
+  Body:    { "url": "<spotify or soundcloud link>" }
+  Response: { "ok": true, "filename": "Artist - Title.mp3" }
+          | { "ok": false, "error": "..." }
+```
+
+That's the entire contract — anything speaking this protocol works,
+including something you write yourself. A reference implementation
+(`import_api.py`) exists in the author's companion **media-downloader-bots**
+project (the Telegram/Bale download bots) — it resolves the link, reuses
+that project's yt-dlp setup to fetch it, then SFTPs the result into this
+project's `music/` directory using credentials from *its own* `.env`
+(`REMOTE_MUSIC_HOST`/`REMOTE_MUSIC_USER`/`REMOTE_MUSIC_DIR`/
+`REMOTE_SSH_KEY_PATH`, pointing back at wherever *this* project lives).
+Nothing on the media-downloader-bots side needs to be told anything about
+TS3 or TeamSpeak — it's a completely generic "give me a link, get back a
+file over SFTP" service from this project's point of view.
+
+Skip this entirely if you don't need Spotify/SoundCloud import — the
+rest of the app works fine without it.
 
 ## Requirements
 
